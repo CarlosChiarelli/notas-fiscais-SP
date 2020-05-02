@@ -1,0 +1,110 @@
+---
+title: "Formando base de dados"
+author: "Carlos"
+date: "16 de maio de 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r pacotes}
+library(tidyverse)
+library(jsonlite)
+```
+
+# Cidades alvo
+
+Obtendo todos munícipios jurisdicionados ao TCESP.
+
+```{r}
+munic_txt <- read_lines("https://transparencia.tce.sp.gov.br/api/json/municipios")
+df_munic <- fromJSON(munic_txt, flatten = T)
+municipios <- df_munic$municipio
+```
+
+# Receitas e Despesas 
+
+O caminho para baixar as despesas temos as seguintes descrições:
+
+Caminho:	https://transparencia.tce.sp.gov.br/api/{formato}/{receitas ou despesas}/{municipio}/{exercício}/{mês}
+Exemplo:	https://transparencia.tce.sp.gov.br/api/json/despesas/campinas/2015/1
+Método:	GET
+Formato:	json e xml
+
+Município:	https://transparencia.tce.sp.gov.br/api/{formato}/municipios
+Exercício:	2014-2019
+Mês:	1-12
+
+```{r}
+anos <- 2014:2019
+messes <- 1:12
+tipos <- c('receitas', 'despesas')
+
+# Baixando e unindo a tabela completa
+url <- "https://transparencia.tce.sp.gov.br/api/json/"
+# criando pasta para salvar os dados
+dir.create("dados")
+
+# c("parisi","oleo","sagres")
+for(cidade in c("parisi","sagres")) {
+  for(ano in anos) {
+    for(mes in messes) {
+      for(tipo in tipos) {
+        # url com os dados
+        url_temp = str_c(url, tipo, "/", cidade, "/", ano, "/", mes)
+        print(url_temp)
+        # baixando e organizando os dados
+        df <- fromJSON(url_temp, flatten = T) %>% 
+          as_tibble() %>% 
+          mutate(municipio = cidade, ano = ano)
+        
+        # Salvando pedacos
+        fname <- str_c('completo_', tipo)
+        df %>% 
+          write_csv(str_c("./dados/",fname,".csv"), append = T) # , append = TRUE)
+      }
+    }
+  }
+}
+```
+
+```{r CORRIGINDO nomes colunas}
+# nomes colunas
+nomes_despesas <- fromJSON("https://transparencia.tce.sp.gov.br/api/json/despesas/campinas/2015/1", flatten = T) %>% 
+  names()
+nomes_despesas <- c(nomes_despesas, "cidade","ano")
+nomes_receitas <- fromJSON("https://transparencia.tce.sp.gov.br/api/json/receitas/campinas/2015/1", flatten = T) %>% 
+  names()
+nomes_receitas <- c(nomes_receitas, "cidade","ano")
+# arrumando nomes colunas 
+df_desp <- read_csv("dados/completo_despesas.csv", col_names = F)
+names(df_desp) <- nomes_despesas
+df_rec <- read_csv("dados/completo_receitas.csv", col_names = F)
+names(df_rec) <- nomes_receitas
+```
+
+```{r salvando}
+df_desp %>% 
+  write_csv("dados/completo_despesas.csv")
+df_rec %>% 
+  write_csv("dados/completo_receitas.csv")
+```
+
+```{r CORRIGINDO colunas numericas}
+df_rec <- df_rec %>% 
+  mutate(valor_arrrecadado = )
+```
+
+
+
+
+
+
+
+
+
+
+
+

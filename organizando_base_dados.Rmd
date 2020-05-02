@@ -1,0 +1,66 @@
+---
+title: "manipulando base dados"
+author: "Carlos"
+date: "17 de maio de 2019"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r pacotes}
+library(tidyverse)
+library(deflateBR)
+```
+
+```{r importacao}
+df_desp <- read_csv("dados/completo_despesas.csv")
+df_rec <- read_csv("dados/completo_receitas.csv")
+```
+
+```{r CORRIGINDO colunas numericas}
+df_rec <- df_rec %>% 
+  mutate(valor = vl_arrecadacao %>% 
+           str_replace("\\.","") %>% str_replace(",",".") %>% as.numeric()) 
+#  gsub("\\.","","1.160.290,91" )
+df_rec %>% 
+  select(vl_arrecadacao, valor) %>% 
+  filter(is.na(valor))
+```
+
+```{r}
+download.file("https://transparencia.tce.sp.gov.br/sites/default/files/conjunto-dados/despesas-2008.zip",
+              destfile = "despesa_2008.zip")
+getwd()
+
+mutate_if(is.character, funs(tout))
+$
+  dumont
+unzip("despesa_2008.zip",)
+```
+
+
+```{r}
+rm(list = ls())
+# cria um diretorio bara baixar os dados
+if (dir.exists('dados_baixados')==FALSE) {dir.create('dados_baixados')}
+
+# links para baixar os arquivos
+anos <- 2008:2019
+todosLinks <- str_c('https://transparencia.tce.sp.gov.br/sites/default/files/conjunto-dados/despesas-',anos,'.zip')
+dest_arquivo <- 'dadosBaixados.aux'
+dest_arquivo = str_c("dados_baixados/", dest_arquivo)
+
+# baixando cada um dos arquivos
+for (link in todosLinks[1:2]){
+  download.file(link, dest_arquivo)
+  unzip(dest_arquivo,exdir = "dados_baixados/")
+}
+
+
+
+
+
+
+```
+
